@@ -1,0 +1,8 @@
+type: yolov8
+name: plat
+display_name: plat
+model_path: divabest.onnx
+conf_threshold: 0.5
+classes: 
+  - Plat
+
