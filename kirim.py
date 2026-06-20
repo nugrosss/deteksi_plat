@@ -3,8 +3,8 @@ from datetime import datetime
 import time
 
 DB_CONFIG = {
-    "host": "192.168.96.128",      # Sama mesin = localhost
-    "user": "diva",   #root 
+    "host": "localhost",      # Sama mesin = localhost
+    "user": "root",   #root 
     "password": "123456",
     "database": "db_foto"
 }
@@ -38,49 +38,71 @@ def kirim_data_masuk(plat: str, path_foto: str):
         if conn is not None and conn.is_connected():
             conn.close()
 
-def kirim_data_keluar(id_masuk: int, plat: str):
+def kirim_data_keluar(plat: str):
     conn = None
     cursor = None
+
     try:
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
 
-        jam_keluar = datetime.now()
+        # Cari data masuk yang cocok
+        cursor.execute("""
+            SELECT id, jam_masuk
+            FROM parkir_log
+            WHERE plat = %s AND status = 'masuk'
+            ORDER BY jam_masuk DESC
+            LIMIT 1
+        """, (plat,))
 
-        cursor.execute("SELECT jam_masuk FROM parkir_log WHERE id = %s", (id_masuk,))
         row = cursor.fetchone()
 
-        durasi_str = "-"
         if row:
-            selisih = jam_keluar - row[0]
+            print(f"[MATCH] Plat ditemukan: {plat}")
+
+            id_masuk = row[0]
+            jam_masuk = row[1]
+            jam_keluar = datetime.now()
+
+            selisih = jam_keluar - jam_masuk
             mnt = int(selisih.total_seconds() // 60)
             durasi_str = f"{mnt // 60}j {mnt % 60}m"
 
-        cursor.execute(
-            "UPDATE parkir_log SET jam_keluar=%s, durasi=%s, status='keluar' WHERE id=%s",
-            (jam_keluar, durasi_str, id_masuk)
-        )
-        conn.commit()
+            cursor.execute("""
+                UPDATE parkir_log
+                SET jam_keluar=%s,
+                    durasi=%s,
+                    status='keluar'
+                WHERE id=%s
+            """, (jam_keluar, durasi_str, id_masuk))
 
-        print(f"[OK] Keluar diupdate: {plat} | Durasi: {durasi_str}")
+            conn.commit()
+
+            print(f"[OK] Keluar: {plat}")
+            return True
+
+        else:
+            print(f"[NO MATCH] Plat tidak ditemukan: {plat}")
+            return False
 
     except mysql.connector.Error as e:
         print(f"[ERROR] {e}")
+        return False
 
     finally:
-        if cursor is not None:
+        if cursor:
             cursor.close()
-        if conn is not None and conn.is_connected():
+        if conn and conn.is_connected():
             conn.close()
-
 
 if __name__ == "__main__":
     # Contoh mobil masuk
-    id_data = kirim_data_masuk("A 1234 XY", "D:\\kuliah JTD\\Rakitriset\\Diva\\Screenshot 2024-07-08 152759.png")
+    id_data = kirim_data_masuk("A DIVAAA XY", "D:\\kuliah JTD\\Rakitriset\\Diva\\detected_plate.jpg")
 
-    # Simulasi delay (misal 5 detik)
-    import time
-    time.sleep(0.4)
+    # # Simulasi delay (misal 5 detik)
+    # import time
+    # time.sleep(4)
 
     # Mobil keluar
-    kirim_data_keluar(id_data, "A 1234 XY")
+    # kirim_data_keluar( "A DIVAAA XY")
+# http://localhost/dashboard.html

@@ -3,8 +3,12 @@ from matplotlib import image
 import pytesseract
 from ultralytics import YOLO
 from kirim import kirim_data_masuk, kirim_data_keluar
+from security import encrypt_image, decrypt_image, hash_plat
 
 from collections import deque, Counter
+from security import encrypt_image, decrypt_image,hash_plat
+from keservo import gerak_servo_keluar, gerak_servo_masuk
+
 
 buffer_text = deque(maxlen=5)  # simpan 5 frame terakhir
 confirm_threshold = 3         # minimal kemunculan untuk dianggap valid
@@ -91,9 +95,11 @@ def main():
                             print(f"Kirim Data: {most_common_text}")
 
                             cv2.imwrite("detected_plate.jpg", frame)
-                            kirim_data_masuk(most_common_text, "detected_plate.jpg")
+                            # hasplat=hash_plat(most_common_text)
+                            print(f"Hash Plat: {most_common_text}")
                             print(f"Data {most_common_text} dikirim ke database.")
-
+                            kirim_data_masuk(most_common_text, "D:\\kuliah JTD\\Rakitriset\\Diva\\detected_plate.jpg")
+                            gerak_servo_masuk()  # Panggil fungsi untuk menggerakkan servo
                             last_text = most_common_text
                             buffer_text.clear()  # reset buffer setelah kirim
                        
