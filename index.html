@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Parking - Pixel Art</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; image-rendering: pixelated; margin: 0; padding: 0; }
+
+        body {
+            background: #0d0d1a;
+            font-family: 'Press Start 2P', monospace;
+            min-height: 100vh;
+        }
+
+        /* SCANLINE EFFECTTT */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0,0,0,0.07) 2px,
+                rgba(0,0,0,0.07) 4px
+            );
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        /* NAVBAR */
+        .px-nav {
+            background: #1a1a2e;
+            border-bottom: 4px solid #e94560;
+            padding: 14px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .px-nav .brand { color: #e94560; font-size: 10px; letter-spacing: 2px; }
+        .px-badge {
+            background: #16213e;
+            border: 2px solid #0f3460;
+            color: #4ecca3;
+            font-size: 7px;
+            padding: 5px 10px;
+        }
+
+        /* BODY */
+        .px-body { padding: 24px; }
+
+        .px-status {
+            font-size: 6px;
+            color: #4ecca3;
+            margin-bottom: 16px;
+            letter-spacing: 2px;
+        }
+        .px-status span.online { color: #ffd700; }
+        .px-status span.refresh { color: #e94560; }
+
+        /* STAT CARDS */
+        .px-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+        .px-card {
+            background: #16213e;
+            border: 3px solid #0f3460;
+            padding: 16px 14px 14px;
+            position: relative;
+        }
+        .px-card-label { font-size: 6px; color: #8888aa; margin-bottom: 12px; letter-spacing: 1px; line-height: 2; }
+        .px-card-val { font-size: 30px; line-height: 1; }
+        .val-blue   { color: #4fc3f7; text-shadow: 3px 3px 0 #0a3a55; }
+        .val-green  { color: #4ecca3; text-shadow: 3px 3px 0 #074a35; }
+        .val-yellow { color: #ffd700; text-shadow: 3px 3px 0 #553d00; }
+
+        /* TABLE */
+        .px-table-wrap {
+            background: #16213e;
+            border: 3px solid #0f3460;
+            padding: 20px;
+        }
+        .px-table-title {
+            font-size: 9px;
+            color: #e94560;
+            margin-bottom: 16px;
+            border-bottom: 2px solid #e94560;
+            padding-bottom: 10px;
+            letter-spacing: 1px;
+        }
+        .table-scroll { overflow-x: auto; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 7px;
+        }
+        thead tr { background: #0f3460; }
+        thead th {
+            color: #4fc3f7;
+            padding: 10px 8px;
+            text-align: center;
+            letter-spacing: 1px;
+            border: 1px solid #1a3a70;
+        }
+        tbody tr { border-bottom: 1px solid #1e2a50; }
+        tbody tr:nth-child(odd)  { background: #1a1a38; }
+        tbody tr:nth-child(even) { background: #16213e; }
+        tbody tr:hover { background: #1f2d5e; }
+        tbody td { padding: 10px 8px; text-align: center; color: #c8d0e8; }
+        td.plat { color: #ffd700; font-size: 9px; }
+
+        .img-box {
+            width: 100px; height: 52px;
+            background: #0a1128;
+            border: 2px solid #0f3460;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #4ecca3;
+            font-size: 5px;
+            text-align: center;
+            line-height: 1.8;
+            overflow: hidden;
+        }
+        .img-box img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            image-rendering: pixelated;
+        }
+
+        .badge-masuk {
+            background: #0d3b2e;
+            border: 2px solid #4ecca3;
+            color: #4ecca3;
+            padding: 4px 8px;
+            font-size: 6px;
+            display: inline-block;
+        }
+        .badge-keluar {
+            background: #0d1f3b;
+            border: 2px solid #4fc3f7;
+            color: #4fc3f7;
+            padding: 4px 8px;
+            font-size: 6px;
+            display: inline-block;
+        }
+
+        .px-footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 5px;
+            color: #2a2a5a;
+            letter-spacing: 2px;
+        }
+
+        /* BLINK ANIMATION */
+        .blink { animation: blink-anim 1s step-end infinite; }
+        @keyframes blink-anim { 0%,100%{opacity:1} 50%{opacity:0} }
+    </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="px-nav">
+    <span class="brand">&#9646;&#9646; SMART PARKING &#9646;&#9646;</span>
+    <span class="px-badge" id="last-update">LOADING<span class="blink">_</span></span>
+</nav>
+
+<!-- BODY -->
+<div class="px-body">
+
+    <div class="px-status">
+        &gt; SYSTEM STATUS: <span class="online">ONLINE</span>
+        &nbsp;&nbsp;&nbsp;
+        AUTO-REFRESH: <span class="refresh">5S</span>
+    </div>
+
+    <!-- STAT CARDS -->
+    <div class="px-cards">
+        <div class="px-card">
+            <div class="px-card-label">TOTAL<br>KENDARAAN</div>
+            <div class="px-card-val val-blue" id="count-total">0</div>
+        </div>
+        <div class="px-card">
+            <div class="px-card-label">DI DALAM<br>PARKIR</div>
+            <div class="px-card-val val-green" id="count-inside">0</div>
+        </div>
+        <div class="px-card">
+            <div class="px-card-label">AUTO<br>REFRESH</div>
+            <div class="px-card-val val-yellow">5s</div>
+        </div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="px-table-wrap">
+        <div class="px-table-title">&gt;&gt; LOG AKTIVITAS PORTAL ___</div>
+        <div class="table-scroll">
+            <table>
+                <thead>
+                    <tr>
+                        <th>PLAT NOMOR</th>
+                        <th>FOTO DETEKSI</th>
+                        <th>JAM MASUK</th>
+                        <th>JAM KELUAR</th>
+                        <th>DURASI</th>
+                        <th>STATUS</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    <tr>
+                        <td colspan="6" style="color:#4ecca3; padding:30px;">
+                            LOADING DATA<span class="blink">...</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="px-footer">
+        &copy; SMART PARKING SYSTEM v1.0 &nbsp;|&nbsp; JETSON NANO EDITION
+    </div>
+
+</div>
+
+<script>
+    const API_URL  = "/api_parking.php?action=get";
+    const FOTO_URL = "/api_parking.php?action=foto&id=";
+
+    function formatTgl(dt) {
+        if (!dt) return "-";
+        const d = new Date(dt);
+        const pad = n => String(n).padStart(2, '0');
+        return pad(d.getDate()) + "/" + pad(d.getMonth() + 1) + "/" + String(d.getFullYear()).slice(2)
+             + " " + pad(d.getHours()) + ":" + pad(d.getMinutes());
+    }
+
+    function renderTable(data) {
+        const tbody = document.getElementById("table-body");
+        tbody.innerHTML = "";
+
+        document.getElementById("count-total").textContent  = data.length;
+        document.getElementById("count-inside").textContent = data.filter(d => d.status === "masuk").length;
+
+        const now = new Date();
+        const t = String(now.getHours()).padStart(2,'0') + ":"
+                + String(now.getMinutes()).padStart(2,'0') + ":"
+                + String(now.getSeconds()).padStart(2,'0');
+        document.getElementById("last-update").innerHTML = "UPDATE " + t + '<span class="blink">_</span>';
+
+        if (data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="color:#e94560;padding:30px;">NO DATA FOUND</td></tr>';
+            return;
+        }
+
+        data.forEach(row => {
+            const badgeCls  = row.status === "masuk" ? "badge-masuk" : "badge-keluar";
+            const statusTxt = row.status === "masuk" ? "MASUK" : "KELUAR";
+
+            tbody.insertAdjacentHTML("beforeend", `
+                <tr>
+                    <td class="plat">${row.plat}</td>
+                    <td>
+                        <div class="img-box">
+                            <img src="${FOTO_URL}${row.id}"
+                                 alt="${row.plat}"
+                                 onerror="this.parentElement.innerHTML='&#9646;&#9646;&#9646;<br>NO IMG'">
+                        </div>
+                    </td>
+                    <td>${formatTgl(row.jam_masuk)}</td>
+                    <td>${formatTgl(row.jam_keluar)}</td>
+                    <td style="color:#ffd700;">${row.durasi || "--:--"}</td>
+                    <td><span class="${badgeCls}">${statusTxt}</span></td>
+                </tr>
+            `);
+        });
+    }
+
+    function loadData() {
+        fetch(API_URL)
+            .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+            .then(data => renderTable(data))
+            .catch(() => {
+                const el = document.getElementById("last-update");
+                el.textContent = "GAGAL KONEK";
+                el.style.color = "#e94560";
+                el.style.borderColor = "#e94560";
+            });
+    }
+
+    loadData();
+    setInterval(loadData, 5000);
+</script>
+
+</body>
+</html>
